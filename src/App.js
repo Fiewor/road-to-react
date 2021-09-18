@@ -3,8 +3,9 @@ import React, { Component } from 'react'
 import './App.css'
 
 const DEFAULT_QUERY = 'redux'
-const DEFAULT_HPP = '100'
+const DEFAULT_HPP = '5'
 
+// const PATH_BASE = 'https://hn.foo.com/api/v1'
 const PATH_BASE = 'https://hn.algolia.com/api/v1'
 const PATH_SEARCH = '/search'
 const PARAM_SEARCH = 'query='
@@ -70,23 +71,34 @@ class App extends Component {
   constructor(props){
     super(props)
     this.state = {
-      result: null,
-      searchTerm: DEFAULT_QUERY
+      results: null,
+      searchKey: '', // used to store each result
+      searchTerm: DEFAULT_QUERY,
+      error: null,
     }
 
+    this.needsToSearchTopStories = this.needsToSearchTopStories.bind(this)
     this.setSearchTopStories = this.setSearchTopStories.bind(this)
     this.onSearchChange = this.onSearchChange.bind(this)
     this.onSearchSubmit = this.onSearchSubmit.bind(this)
     this.onDismiss = this.onDismiss.bind(this)
   }
 
+  needsToSearchTopStories(searchTerm){
+    return !this.state.results[searchTerm]
+  }
+
   setSearchTopStories(result) {
     // this.setState({result})
     //functionality to concatenate old and new list of hits from the local state and new result object instead of just overriding the previous page of data
     const {hits, page} = result
-    const oldHits = page !== 0
-    ? this.state.result.hits
+    const {searchKey, results} = this.state
+    const oldHits = results && results[searchKey]
+    ? results[searchKey].hits
     : []
+    // const oldHits = page !== 0
+    // ? this.state.result.hits
+    // : []
 
     const updatedHits = [
       ...oldHits,
@@ -94,7 +106,10 @@ class App extends Component {
     ]
 
     this.setState({
-      result: {hits: updatedHits, page}
+      results: {
+        ...results,
+        [searchKey]:{ hits: updatedHits, page }
+      }
     })
   }
 
@@ -102,11 +117,12 @@ class App extends Component {
     fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
     .then(response => response.json())
     .then(result => this.setSearchTopStories(result))
-    .catch(error => error)
+    .catch(error => this.setState({ error }))
   }
 
   componentDidMount() {
     const {searchTerm} = this.state
+    this.setState({searchKey: searchTerm})
     this.fetchSearchTopStories(searchTerm)
   }
 
@@ -115,31 +131,45 @@ class App extends Component {
   }
 
   onSearchSubmit(event){
-    console.log('search button is working')
     const {searchTerm} = this.state
-    this.fetchSearchTopStories(searchTerm)
+    this.setState({searchKey: searchTerm})
+    if(this.needsToSearchTopStories(searchTerm)){
+      this.fetchSearchTopStories(searchTerm)
+    }
     event.preventDefault()
   }
 
   onDismiss(id) {
+    const {searchKey, results} = this.state
+    const {hits, page} = results[searchKey]
     const isNotId = listItem => listItem.objectID !== id
-    const updatedHits = this.state.result.hits.filter(isNotId)
+    // const updatedHits = this.state.result.hits.filter(isNotId)
+    const updatedHits = hits.filter(isNotId)
     this.setState({
-      result: {...this.state.result, hits: updatedHits}
+      result: {
+        ...results,
+        [searchKey]: {hits: updatedHits, page}
+      }
       // result: Object.assign({}, this.state.result, {hits: updatedHits})
     })
  }
 
   render() {
     // console.log(this.state);
-    const {result, searchTerm} = this.state
-    const page = (result && result.page) || 0
+    const {results, searchTerm, searchKey, error} = this.state
+    const page = (results && results[searchKey] && results[searchKey].page) || 0
+    const list = (results && results[searchKey] && results[searchKey].hits) || []
+    // const page = (result && result.page) || 0
     // if(!result) {return null}
+
+    // if (error){
+    //   return <p>Uhm...Something went wrong</p>
+    // }
 
     return(
       <div className="page">
         <div className="interactions">
-            <Button onClick={() => this.fetchSearchTopStories(searchTerm, page + 1)}>More</Button>
+            <Button onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>More</Button>
             <Search 
             value={searchTerm}
             onChange={this.onSearchChange}
@@ -148,14 +178,19 @@ class App extends Component {
             Search
             </Search>
         </div>
-        { result && 
-          <Table
-            list={result.hits}
+        {error
+        ? <div className="interactions">
+            <p>Uhm...Something went wrong</p>
+            <p>List was unable to load</p>
+          </div>
+        : <Table
+            list={list}
+            // list={result.hits}
             // pattern={searchTerm}
             onDismiss={this.onDismiss}
-        />
+          />
         }
-      </div>
+        </div>
     )
   }
 }
