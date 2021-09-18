@@ -90,7 +90,7 @@ class App extends Component {
 
     const updatedHits = [
       ...oldHits,
-      hits
+      ...hits
     ]
 
     this.setState({
@@ -115,6 +115,7 @@ class App extends Component {
   }
 
   onSearchSubmit(event){
+    console.log('search button is working')
     const {searchTerm} = this.state
     this.fetchSearchTopStories(searchTerm)
     event.preventDefault()
@@ -133,7 +134,7 @@ class App extends Component {
     // console.log(this.state);
     const {result, searchTerm} = this.state
     const page = (result && result.page) || 0
-    if(!result) {return null}
+    // if(!result) {return null}
 
     return(
       <div className="page">
