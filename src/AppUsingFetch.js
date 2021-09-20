@@ -1,16 +1,17 @@
-// version using axios
+// version using API. request made using fetch
 import React, { Component } from 'react'
-import axios from 'axios'
 import './App.css'
 
 const DEFAULT_QUERY = 'redux'
-const DEFAULT_HPP = '100'
+const DEFAULT_HPP = '2'
 
+// const PATH_BASE = 'https://hn.foo.com/api/v1'
 const PATH_BASE = 'https://hn.algolia.com/api/v1'
 const PATH_SEARCH = '/search'
 const PARAM_SEARCH = 'query='
 const PARAM_PAGE = 'page='
 const PARAM_HPP = 'hitsPerPage='
+// const url = `${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${DEFAULT_QUERY}`
 
 const largeColumn = {
     width: '40%'
@@ -24,8 +25,13 @@ const smallColumn = {
     width: '10%'
 }
 
+// const isSearched = searchTerm => item => item.title.toLowerCase().includes(searchTerm.toLowerCase())
+
+// const Table = ({list, pattern, onDismiss}) =>
 const Table = ({list, onDismiss}) =>
     <div className="table">
+        {/* removing the filter functionality because there will be no client-side filter(search) anymore */}
+        {/* {list.filter(isSearched(pattern)).map(item =>     */}
         {list.map(item =>    
         <div key={item.objectID} className="table-row">
             <span style={largeColumn}>
@@ -62,13 +68,11 @@ const Search = ({value, onChange, onSubmit, children}) =>
 const Button = ({onClick, className = '', children}) => <button type="button"> {children}  </button>
 
 class App extends Component {
-  _isMounted = false
-
   constructor(props){
     super(props)
     this.state = {
       results: null,
-      searchKey: '',
+      searchKey: '', // used to store each result
       searchTerm: DEFAULT_QUERY,
       error: null,
     }
@@ -85,6 +89,8 @@ class App extends Component {
   }
 
   setSearchTopStories(result) {
+    // this.setState({result})
+    // functionality to concatenate old and new list of hits from the local state and new result object instead of just overriding the previous page of data
     const {hits, page} = result
     const {searchKey, results} = this.state
     const oldHits = results && results[searchKey]
@@ -105,24 +111,17 @@ class App extends Component {
   }
 
   fetchSearchTopStories(searchTerm, page = 0) {
-    axios(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
-    // .then(response => response.json()) using axios eliminates the need for this as axios by default does this i.e. wraps the result into a data object
-    .then(result => this._isMounted && this.setSearchTopStories(result))
-    // added "this._isMounted &&" to avoid calling "this.setState()" on the component instance even though the component already previously mounted
-    // when .isMounted returns false meaning the component has been unmounted for some reason so no need to make the request
-    .catch(error => this._isMounted && this.setState({ error }))
+    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
+    .then(response => response.json())
+    .then(result => this.setSearchTopStories(result))
+    .catch(error => this.setState({ error }))
   }
 
+  // this is called only once when the component mounted and so it's the perfect place where an asynchronous request to fetch data from an API should be made
   componentDidMount() {
-    this._isMounted = true
-    
     const {searchTerm} = this.state
     this.setState({ searchKey: searchTerm })
     this.fetchSearchTopStories(searchTerm)
-  }
-  
-  componentWillUnmount(){
-    this._isMounted = false
   }
 
   onSearchChange=(e)=>{
@@ -144,6 +143,7 @@ class App extends Component {
     const {hits, page} = results[searchKey]
 
     const isNotId = item => item.objectID !== id
+    // const updatedHits = this.state.result.hits.filter(isNotId)
     const updatedHits = hits.filter(isNotId)
     
     this.setState({
@@ -151,13 +151,21 @@ class App extends Component {
         ...results,
         [searchKey]: {hits: updatedHits, page}
       }
+      // result: Object.assign({}, this.state.result, {hits: updatedHits})
     })
   }
 
   render() {
+    // console.log(this.state);
     const {results, searchTerm, searchKey, error} = this.state
     const page = (results && results[searchKey] && results[searchKey].page) || 0
     const list = (results && results[searchKey] && results[searchKey].hits) || []
+    // const page = (result && result.page) || 0
+    // if(!result) {return null}
+
+    // if (error){
+    //   return <p>Uhm...Something went wrong</p>
+    // }
 
     return(
       <div className="page">
@@ -178,6 +186,8 @@ class App extends Component {
           </div>
         : <Table
             list={list}
+            // list={result.hits}
+            // pattern={searchTerm}
             onDismiss={this.onDismiss}
           />
         }
