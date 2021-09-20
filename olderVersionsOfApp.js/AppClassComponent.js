@@ -3,7 +3,7 @@
 import React, { Component } from 'react'
 import './App.css'
 // eslint-disable-next-line
-import BindingPractice from './binding'
+import BindingPractice from '../src/binding'
 
 const list = [
   {
