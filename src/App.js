@@ -108,6 +108,7 @@ class App extends Component {
 
   setSearchTopStories(result) {
     const {hits, page} = result
+    console.log(result)
     const {searchKey, results} = this.state
     const oldHits = results && results[searchKey]
     ? results[searchKey].hits
@@ -129,7 +130,7 @@ class App extends Component {
   fetchSearchTopStories(searchTerm, page = 0) {
     axios(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
     // .then(response => response.json()) using axios eliminates the need for this as axios by default does this i.e. wraps the result into a data object
-    .then(result => this._isMounted && this.setSearchTopStories(result))
+    .then(result => this._isMounted && this.setSearchTopStories(result.data))
     // added "this._isMounted &&" to avoid calling "this.setState()" on the component instance even though the component already previously mounted
     // when .isMounted returns false meaning the component has been unmounted for some reason so no need to make the request
     .catch(error => this._isMounted && this.setState({ error }))
