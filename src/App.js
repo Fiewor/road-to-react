@@ -85,6 +85,17 @@ Button.defaultProps = { className: '', }
 
 const  Loading = () => <div>Loading...</div>
 
+// higher order component. takes a component as input(and maybe some arguments) and returns a component (enhanced version of the input) as output
+// const withLoading = (Component) => (props) => // since the input component may not care about the isLoading property, use the rest destructuring to avoid that(?) instead of just spreading/passing all the eprops
+const withLoading = (Component) => ({ isLoading, ...rest }) =>
+isLoading // based on the loading property, apply a conditional rendering. this function will return the Loading gcomponent or the functional component
+? <Loading />
+: <Component { ...rest } />
+// so this takes one property out of the object and keeps the remaining object
+// : <Component { ...props } />
+
+const ButtonWithLoading = withLoading(Button) // this is the enhanced output component
+
 class App extends Component {
   _isMounted = false
 
@@ -199,13 +210,13 @@ class App extends Component {
           </Search>
           { isLoading 
           ? <Loading />
-          : <Button
-              onClick={
-                () => this.fetchSearchTopStories(searchKey, page + 1)
-              }
+          // note that instead of the former Button, the enhanced ButtonWithLoading is now being used instead
+          : <ButtonWithLoading
+              isLoading={isLoading}
+              onClick={ () => this.fetchSearchTopStories(searchKey, page + 1) }
             >
               More
-            </Button>
+            </ButtonWithLoading>
           }
         </div>
         {error
