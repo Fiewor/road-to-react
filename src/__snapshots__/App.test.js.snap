@@ -7,13 +7,6 @@ exports[`App has a valid snapshot 1`] = `
   <div
     className="interactions"
   >
-    <button
-      type="button"
-    >
-       
-      More
-        
-    </button>
     <form
       onSubmit={[Function]}
     >
@@ -30,6 +23,9 @@ exports[`App has a valid snapshot 1`] = `
         Search
       </button>
     </form>
+    <div>
+      Loading...
+    </div>
   </div>
   <div
     className="table"
@@ -54,13 +50,6 @@ exports[`Search has a valid snapshot 1`] = `
   <div
     className="interactions"
   >
-    <button
-      type="button"
-    >
-       
-      More
-        
-    </button>
     <form
       onSubmit={[Function]}
     >
@@ -77,6 +66,9 @@ exports[`Search has a valid snapshot 1`] = `
         Search
       </button>
     </form>
+    <div>
+      Loading...
+    </div>
   </div>
   <div
     className="table"
