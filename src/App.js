@@ -83,6 +83,8 @@ Button.propTypes = {
 
 Button.defaultProps = { className: '', }
 
+const  Loading = () => <div>Loading...</div>
+
 class App extends Component {
   _isMounted = false
 
@@ -93,6 +95,7 @@ class App extends Component {
       searchKey: '',
       searchTerm: DEFAULT_QUERY,
       error: null,
+      isLoading: false
     }
 
     this.needsToSearchTopStories = this.needsToSearchTopStories.bind(this)
@@ -123,11 +126,13 @@ class App extends Component {
       results: {
         ...results,
         [searchKey]:{ hits: updatedHits, page }
-      }
+      },
+      isLoading: false
     })
   }
 
   fetchSearchTopStories(searchTerm, page = 0) {
+    this.setState({ isLoading: true })
     axios(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
     // .then(response => response.json()) using axios eliminates the need for this as axios by default does this i.e. wraps the result into a data object
     .then(result => this._isMounted && this.setSearchTopStories(result.data))
@@ -178,21 +183,30 @@ class App extends Component {
   }
 
   render() {
-    const {results, searchTerm, searchKey, error} = this.state
+    const {results, searchTerm, searchKey, error, isLoading} = this.state
     const page = (results && results[searchKey] && results[searchKey].page) || 0
     const list = (results && results[searchKey] && results[searchKey].hits) || []
 
     return(
       <div className="page">
         <div className="interactions">
-            <Button onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>More</Button>
-            <Search 
+          <Search 
             value={searchTerm}
             onChange={this.onSearchChange}
             onSubmit={this.onSearchSubmit}
+          >
+          Search
+          </Search>
+          { isLoading 
+          ? <Loading />
+          : <Button
+              onClick={
+                () => this.fetchSearchTopStories(searchKey, page + 1)
+              }
             >
-            Search
-            </Search>
+              More
+            </Button>
+          }
         </div>
         {error
         ? <div className="interactions">
