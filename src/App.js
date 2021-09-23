@@ -84,15 +84,6 @@ Button.propTypes = {
 
 Button.defaultProps = { className: '', }
 
-<<<<<<< HEAD
-const SORTS = {
-  NONE: list => list,
-  TITLE: list => sortBy(list, 'title'),
-  AUTHOR: list => sortBy(list, 'author'),
-  COMMENTS: list => sortBy(list, 'num_comments').reverse(), // reversed because you want to see the items with the highest comments when you sort for the first time
-  POINTS: list => sortBy(list, 'points').reverse()
-}
-=======
 const  Loading = () => <div>Loading...</div>
 
 // higher order component. takes a component as input(and maybe some arguments) and returns a component (enhanced version of the input) as output
@@ -105,7 +96,6 @@ isLoading // based on the loading property, apply a conditional rendering. this 
 // : <Component { ...props } />
 
 const ButtonWithLoading = withLoading(Button) // this is the enhanced output component
->>>>>>> 437b22ff198e250b7667cfc6ad4ada83f2a4a74c
 
 class App extends Component {
   _isMounted = false
@@ -117,11 +107,7 @@ class App extends Component {
       searchKey: '',
       searchTerm: DEFAULT_QUERY,
       error: null,
-<<<<<<< HEAD
-      sortKey: 'NONE'
-=======
       isLoading: false
->>>>>>> 437b22ff198e250b7667cfc6ad4ada83f2a4a74c
     }
 
     this.needsToSearchTopStories = this.needsToSearchTopStories.bind(this)
@@ -214,11 +200,7 @@ class App extends Component {
   }
 
   render() {
-<<<<<<< HEAD
     const {results, searchTerm, searchKey, error, isLoading, sortKey} = this.state
-=======
-    const {results, searchTerm, searchKey, error, isLoading} = this.state
->>>>>>> 437b22ff198e250b7667cfc6ad4ada83f2a4a74c
     const page = (results && results[searchKey] && results[searchKey].page) || 0
     const list = (results && results[searchKey] && results[searchKey].hits) || []
 
