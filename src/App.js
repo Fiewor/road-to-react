@@ -2,9 +2,10 @@
 import React, { Component } from 'react'
 import axios from 'axios'
 import PropTypes from 'prop-types'
+import { sortBy } from 'lodash'
 import './App.css'
 
-const DEFAULT_QUERY = 'redux'
+const DEFAULT_QUERY = 'react'
 const DEFAULT_HPP = '100'
 
 const PATH_BASE = 'https://hn.algolia.com/api/v1'
@@ -83,6 +84,14 @@ Button.propTypes = {
 
 Button.defaultProps = { className: '', }
 
+const SORTS = {
+  NONE: list => list,
+  TITLE: list => sortBy(list, 'title'),
+  AUTHOR: list => sortBy(list, 'author'),
+  COMMENTS: list => sortBy(list, 'num_comments').reverse(), // reversed because you want to see the items with the highest comments when you sort for the first time
+  POINTS: list => sortBy(list, 'points').reverse()
+}
+
 class App extends Component {
   _isMounted = false
 
@@ -93,6 +102,7 @@ class App extends Component {
       searchKey: '',
       searchTerm: DEFAULT_QUERY,
       error: null,
+      sortKey: 'NONE'
     }
 
     this.needsToSearchTopStories = this.needsToSearchTopStories.bind(this)
@@ -100,6 +110,11 @@ class App extends Component {
     this.onSearchChange = this.onSearchChange.bind(this)
     this.onSearchSubmit = this.onSearchSubmit.bind(this)
     this.onDismiss = this.onDismiss.bind(this)
+    this.onSort = this.onSort.bind(this)
+  }
+
+  onSort(sortKey) {
+    this.setState({ sortKey })
   }
 
   needsToSearchTopStories(searchTerm){
@@ -177,7 +192,7 @@ class App extends Component {
   }
 
   render() {
-    const {results, searchTerm, searchKey, error} = this.state
+    const {results, searchTerm, searchKey, error, isLoading, sortKey} = this.state
     const page = (results && results[searchKey] && results[searchKey].page) || 0
     const list = (results && results[searchKey] && results[searchKey].hits) || []
 
@@ -200,6 +215,8 @@ class App extends Component {
           </div>
         : <Table
             list={list}
+            sortKey={sortKey}
+            onSort={this.onSort}
             onDismiss={this.onDismiss}
           />
         }
