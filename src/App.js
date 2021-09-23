@@ -84,6 +84,7 @@ Button.propTypes = {
 
 Button.defaultProps = { className: '', }
 
+<<<<<<< HEAD
 const SORTS = {
   NONE: list => list,
   TITLE: list => sortBy(list, 'title'),
@@ -91,6 +92,20 @@ const SORTS = {
   COMMENTS: list => sortBy(list, 'num_comments').reverse(), // reversed because you want to see the items with the highest comments when you sort for the first time
   POINTS: list => sortBy(list, 'points').reverse()
 }
+=======
+const  Loading = () => <div>Loading...</div>
+
+// higher order component. takes a component as input(and maybe some arguments) and returns a component (enhanced version of the input) as output
+// const withLoading = (Component) => (props) => // since the input component may not care about the isLoading property, use the rest destructuring to avoid that(?) instead of just spreading/passing all the eprops
+const withLoading = (Component) => ({ isLoading, ...rest }) =>
+isLoading // based on the loading property, apply a conditional rendering. this function will return the Loading gcomponent or the functional component
+? <Loading />
+: <Component { ...rest } />
+// so this takes one property out of the object and keeps the remaining object
+// : <Component { ...props } />
+
+const ButtonWithLoading = withLoading(Button) // this is the enhanced output component
+>>>>>>> 437b22ff198e250b7667cfc6ad4ada83f2a4a74c
 
 class App extends Component {
   _isMounted = false
@@ -102,7 +117,11 @@ class App extends Component {
       searchKey: '',
       searchTerm: DEFAULT_QUERY,
       error: null,
+<<<<<<< HEAD
       sortKey: 'NONE'
+=======
+      isLoading: false
+>>>>>>> 437b22ff198e250b7667cfc6ad4ada83f2a4a74c
     }
 
     this.needsToSearchTopStories = this.needsToSearchTopStories.bind(this)
@@ -123,6 +142,7 @@ class App extends Component {
 
   setSearchTopStories(result) {
     const {hits, page} = result
+    console.log(result)
     const {searchKey, results} = this.state
     const oldHits = results && results[searchKey]
     ? results[searchKey].hits
@@ -137,14 +157,16 @@ class App extends Component {
       results: {
         ...results,
         [searchKey]:{ hits: updatedHits, page }
-      }
+      },
+      isLoading: false
     })
   }
 
   fetchSearchTopStories(searchTerm, page = 0) {
+    this.setState({ isLoading: true })
     axios(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
     // .then(response => response.json()) using axios eliminates the need for this as axios by default does this i.e. wraps the result into a data object
-    .then(result => this._isMounted && this.setSearchTopStories(result))
+    .then(result => this._isMounted && this.setSearchTopStories(result.data))
     // added "this._isMounted &&" to avoid calling "this.setState()" on the component instance even though the component already previously mounted
     // when .isMounted returns false meaning the component has been unmounted for some reason so no need to make the request
     .catch(error => this._isMounted && this.setState({ error }))
@@ -192,21 +214,34 @@ class App extends Component {
   }
 
   render() {
+<<<<<<< HEAD
     const {results, searchTerm, searchKey, error, isLoading, sortKey} = this.state
+=======
+    const {results, searchTerm, searchKey, error, isLoading} = this.state
+>>>>>>> 437b22ff198e250b7667cfc6ad4ada83f2a4a74c
     const page = (results && results[searchKey] && results[searchKey].page) || 0
     const list = (results && results[searchKey] && results[searchKey].hits) || []
 
     return(
       <div className="page">
         <div className="interactions">
-            <Button onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>More</Button>
-            <Search 
+          <Search 
             value={searchTerm}
             onChange={this.onSearchChange}
             onSubmit={this.onSearchSubmit}
+          >
+          Search
+          </Search>
+          { isLoading 
+          ? <Loading />
+          // note that instead of the former Button, the enhanced ButtonWithLoading is now being used instead
+          : <ButtonWithLoading
+              isLoading={isLoading}
+              onClick={ () => this.fetchSearchTopStories(searchKey, page + 1) }
             >
-            Search
-            </Search>
+              More
+            </ButtonWithLoading>
+          }
         </div>
         {error
         ? <div className="interactions">
